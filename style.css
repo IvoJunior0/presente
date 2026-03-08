@@ -542,12 +542,12 @@ body {
   grid-template-rows: repeat(6, 1fr);
   gap: 6px;
   width: 100%;
-  max-width: 320px;
+  max-width: 420px;
 }
 
 .termo-row {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(8, 1fr);
   gap: 6px;
 }
 
@@ -559,7 +559,7 @@ body {
   align-items: center;
   justify-content: center;
   font-family: var(--ff-body);
-  font-size: clamp(1rem, 4vw, 1.3rem);
+  font-size: clamp(0.85rem, 3.5vw, 1.15rem);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -589,6 +589,18 @@ body {
 .termo-cell.correct { background: #c9546a; border-color: #c9546a; color: #fff; }
 .termo-cell.present { background: #e8a040; border-color: #e8a040; color: #fff; }
 .termo-cell.absent  { background: #a09090; border-color: #a09090; color: #fff; }
+/* Grade ativa (em foco) — borda de destaque */
+.termo-grid.termo-active {
+  outline: 2px solid rgba(217,116,138,0.5);
+  outline-offset: 6px;
+  border-radius: 10px;
+}
+
+/* Hint visual quando não está ativa */
+.termo-grid:not(.termo-active) .termo-cell:not([class*="correct"]):not([class*="present"]):not([class*="absent"]) {
+  opacity: 0.75;
+}
+
 
 /* Animação shake quando erra palavra inválida */
 .termo-row.shake {

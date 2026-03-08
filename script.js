@@ -202,9 +202,9 @@ document.addEventListener('DOMContentLoaded', () => {
      5. TERMO — JOGO ESTILO WORDLE
      ================================================ */
 
-  const TERMO_WORD    = 'CABELO';   // palavra secreta (6 letras)
+  const TERMO_WORD    = 'PERFEITA'; // palavra secreta (8 letras)
   const TERMO_ROWS    = 6;
-  const TERMO_COLS    = 6;
+  const TERMO_COLS    = 8;
 
   let termoCurRow  = 0;
   let termoCurCol  = 0;
@@ -404,16 +404,72 @@ document.addEventListener('DOMContentLoaded', () => {
     gameWin.classList.remove('hidden');
   }
 
-  /* Teclado físico */
-  document.addEventListener('keydown', e => {
-    if (termoOver) return;
-    // Só processa quando a seção de jogo está visível
-    const gameSection = document.querySelector('.section-game');
-    if (!gameSection || !gameSection.classList.contains('visible')) return;
+  /* ─── Sistema de foco ──────────────────────────────
+     O jogo só aceita input quando o grid está "ativo".
+     Clicar no grid → ativa. Clicar fora → desativa.
+     No mobile: o input oculto é focado para abrir o teclado nativo.
+  ─────────────────────────────────────────────────── */
+  let termoFocused = false;
+  const termoGridEl    = document.getElementById('termoGrid');
+  const hiddenInput    = document.getElementById('termoHiddenInput');
 
-    if (e.key === 'Backspace') { handleKey('Backspace'); return; }
-    if (e.key === 'Enter')     { handleKey('Enter');     return; }
-    if (/^[a-zA-ZçÇ]$/.test(e.key)) handleKey(e.key.toUpperCase());
+  function activateTermo() {
+    if (termoOver) return;
+    termoFocused = true;
+    termoGridEl.classList.add('termo-active');
+    // Foca o input oculto para abrir teclado no mobile
+    hiddenInput.focus({ preventScroll: true });
+  }
+
+  function deactivateTermo() {
+    termoFocused = false;
+    termoGridEl.classList.remove('termo-active');
+  }
+
+  // Clique na grade → ativa
+  termoGridEl.addEventListener('click', e => {
+    e.stopPropagation();
+    activateTermo();
+  });
+
+  // Clique nos botões do teclado visual → mantém ativo
+  termoKeyboard.addEventListener('mousedown', e => {
+    e.preventDefault(); // evita que o input oculto perca foco
+  });
+
+  // Clique fora → desativa
+  document.addEventListener('click', e => {
+    if (!termoGridEl.contains(e.target) && !termoKeyboard.contains(e.target)) {
+      deactivateTermo();
+    }
+  });
+
+  // Teclado físico (desktop) — só funciona quando ativo
+  document.addEventListener('keydown', e => {
+    if (!termoFocused || termoOver) return;
+    if (e.key === 'Backspace') { e.preventDefault(); handleKey('Backspace'); return; }
+    if (e.key === 'Enter')     { e.preventDefault(); handleKey('Enter');     return; }
+    if (/^[a-zA-ZçÇ]$/.test(e.key)) { e.preventDefault(); handleKey(e.key.toUpperCase()); }
+  });
+
+  // Input oculto: captura digitação no mobile (teclado nativo)
+  hiddenInput.addEventListener('input', e => {
+    if (!termoFocused || termoOver) return;
+    const val = hiddenInput.value;
+    if (!val) return;
+    // Processa cada caractere novo
+    for (const ch of val) {
+      if (/^[a-zA-ZçÇ]$/.test(ch)) handleKey(ch.toUpperCase());
+    }
+    hiddenInput.value = '';
+  });
+
+  // Quando o input oculto perde foco por ação externa (ex: usuário fecha teclado)
+  hiddenInput.addEventListener('blur', () => {
+    // Pequeno delay para não desativar ao clicar nas teclas virtuais
+    setTimeout(() => {
+      if (document.activeElement !== hiddenInput) deactivateTermo();
+    }, 150);
   });
 
   buildGrid();
